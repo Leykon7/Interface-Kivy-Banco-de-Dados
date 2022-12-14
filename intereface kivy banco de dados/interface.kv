@@ -13,22 +13,26 @@
             text: 'Digite a data inicial no formato DD/MM/AAAA :'
         TextInput:
             id: datai
+            text: '01/01/2000'
         Label:
         Label:
             text: 'Digite a hora inicial no formato HH:MM:SS :'
         TextInput:
             id: horai
+            text: '12:00:00'
         Label:
         Label:
         Label:
             text: 'Digite a data final no formato DD/MM/AAAA :'
         TextInput:
             id: dataf
+            text: '01/01/2000'
         Label:
         Label:
             text: 'Digite a hora final no formato HH:MM:SS :'
         TextInput:
             id: horaf
+            text: '12:00:00'
         Label:
         Label:
         Button:
@@ -36,6 +40,8 @@
             text: 'Pesquisar'
             on_release: root.pesquisar()
         Label:
+        BoxLayout:
+            id: grafico
     Label:
 
     
