@@ -7,6 +7,7 @@ from dbhandler import DBHandler
 from matplotlib import pyplot as plt
 import numpy as np
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
+from kivy.core.window import Window
 
 tags_addrs = {
     'temperatura': 1000,
@@ -18,65 +19,54 @@ tags_addrs = {
 class MyWidget(BoxLayout):
 
     def pesquisar(self):
-        inicial = str(self.ids.datai.text) + ' ' + str(self.ids.horai.text)
-        final = str(self.ids.dataf.text) + ' ' + str(self.ids.horaf.text)
-
-        #Teste do textinput 
-        print(f'\nEntrada inicial: {inicial}\n')
-        print(f'Entrada final: {final}\n')
+        """
+        Método que acessa o histórico de dados
+        """
         self.conectar()
-
-        #Adicionar lógica do Banco de dados
-
-        try:
-            #print("Bem vindo ao sistema de busca de dados históricos")
-            
-            
+        try:            
+            inicial = str(self.ids.datai.text) + ' ' + str(self.ids.horai.text)
+            final = str(self.ids.dataf.text) + ' ' + str(self.ids.horaf.text)
             inicial = datetime.strptime(inicial, '%d/%m/%Y %H:%M:%S').strftime("%Y-%m-%d %H:%M:%S")
             final = datetime.strptime(final, '%d/%m/%Y %H:%M:%S').strftime("%Y-%m-%d %H:%M:%S")
             result = self._dbclient.select_data(self._tags_addrs.keys(), inicial, final)
-            
-            #Teste do textinput 
-            print(f'\nEntrada inicial: {inicial}\n')
-            print(f'Entrada final: {final}\n')
+            signal = []
+            if self.ids.seletor.text == 'Temperatura':
+                for i in range(len(result['data'])):
+                    signal.append(result['data'][i][1])
+            elif self.ids.seletor.text == 'Pressão':
+                for i in range(len(result['data'])):
+                    signal.append(result['data'][i][2])
+            elif self.ids.seletor.text == 'Umidade':
+                for i in range(len(result['data'])):
+                    signal.append(result['data'][i][3])
+            elif self.ids.seletor.text == 'Consumo':
+                for i in range(len(result['data'])):
+                    signal.append(result['data'][i][4])
+            else:
+                pass
 
-            #print(tabulate(result['data'], headers=result['cols']))
-
-            signal = [7, 89.6, 45.-56.34]
             signal = np.array(signal)
-
-            signal= np.array(result['data'])
-            
-            # this will plot the signal on graph
             plt.plot(signal)
-            
-            # setting x label
-            plt.xlabel('Time(s)')
-            
-            # setting y label
-            plt.ylabel('signal (norm)')
+            plt.xlabel('id')      
+            plt.ylabel(self.ids.seletor.text)
             plt.grid(True, color='lightgray')
-
             self.ids.grafico.add_widget(FigureCanvasKivyAgg(plt.gcf()))
-
 
         except Exception as e:
             print("Erro: ", e.args)
     
     def conectar(self):
+        """
+        Método que conecta com o servidor
+        """
         try:
             self._cliente = ModbusClient(host='localhost', port = 502)
             self._scan_time = 1
-
             self._tags_addrs = tags_addrs
-            self._dbclient = DBHandler('data\data.db',self._tags_addrs.keys(),'modbusData') #   ERRO! 'DBHandler' object has no attribute '_con'
-            #self._threads = []
-
+            self._dbclient = DBHandler('data\data.db',self._tags_addrs.keys(),'modbusData') 
             self._cliente.open()
-
         except Exception as e:
             print('Erro no atendimento: ',e.args)
-
 
 class InterfaceApp(App):
     def build(self):
@@ -85,6 +75,11 @@ class InterfaceApp(App):
         """
         return MyWidget()
  
+# if __name__ == '__main__':
+#     Config.set('graphics','resizable',True)
+#     InterfaceApp().run()
+
 if __name__ == '__main__':
-    Config.set('graphics','resizable',True)
+    Window.size = (1200,600)
+    Window.fullscreen = False
     InterfaceApp().run()
