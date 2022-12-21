@@ -24,11 +24,22 @@ class MyWidget(BoxLayout):
         """
         self.conectar()
         try:            
+            #Acessando histórico
             inicial = str(self.ids.datai.text) + ' ' + str(self.ids.horai.text)
             final = str(self.ids.dataf.text) + ' ' + str(self.ids.horaf.text)
             inicial = datetime.strptime(inicial, '%d/%m/%Y %H:%M:%S').strftime("%Y-%m-%d %H:%M:%S")
             final = datetime.strptime(final, '%d/%m/%Y %H:%M:%S').strftime("%Y-%m-%d %H:%M:%S")
             result = self._dbclient.select_data(self._tags_addrs.keys(), inicial, final)
+
+            #Tentando separar apenas os minutos e segundos
+            # timestamp = []
+            # for i in range(len(result['data'])):
+            #         timestamp.append(result['data'][i][0])
+            #         timestamp[i] = timestamp[i].split()
+            #         timestamp[i] = timestamp[i][1].split(":",1)
+            #         timestamp[i] = timestamp[i][1]
+
+            #Selecionando apenas os dados escolhidos e pondo na lista signal
             signal = []
             if self.ids.seletor.text == 'Temperatura':
                 for i in range(len(result['data'])):
@@ -42,16 +53,16 @@ class MyWidget(BoxLayout):
             elif self.ids.seletor.text == 'Consumo':
                 for i in range(len(result['data'])):
                     signal.append(result['data'][i][4])
-            else:
-                pass
-
-            signal = np.array(signal)
+            
+            #Plotando gráfico
             plt.plot(signal)
-            plt.xlabel('id')      
+            plt.xlabel('Número de dado')      
             plt.ylabel(self.ids.seletor.text)
             plt.grid(True, color='lightgray')
             self.ids.grafico.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 
+            # a = self.ids.grafico.children[-1]
+            # self.ids.grafico.removeWidget(a)
         except Exception as e:
             print("Erro: ", e.args)
     
