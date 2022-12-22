@@ -1,11 +1,9 @@
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.config import Config
 from pyModbusTCP.client import ModbusClient
 from datetime import datetime
 from dbhandler import DBHandler
 from matplotlib import pyplot as plt
-import numpy as np
 from kivy.garden.matplotlib import FigureCanvasKivyAgg
 from kivy.core.window import Window
 
@@ -18,10 +16,14 @@ tags_addrs = {
 
 class MyWidget(BoxLayout):
 
+    graf = False
     def pesquisar(self):
         """
         Método que acessa o histórico de dados
         """
+        if self.graf == True:
+            self.ids.grafico.clear_widgets()
+            plt.cla()
         self.conectar()
         try:            
             #Acessando histórico
@@ -30,14 +32,6 @@ class MyWidget(BoxLayout):
             inicial = datetime.strptime(inicial, '%d/%m/%Y %H:%M:%S').strftime("%Y-%m-%d %H:%M:%S")
             final = datetime.strptime(final, '%d/%m/%Y %H:%M:%S').strftime("%Y-%m-%d %H:%M:%S")
             result = self._dbclient.select_data(self._tags_addrs.keys(), inicial, final)
-
-            #Tentando separar apenas os minutos e segundos
-            # timestamp = []
-            # for i in range(len(result['data'])):
-            #         timestamp.append(result['data'][i][0])
-            #         timestamp[i] = timestamp[i].split()
-            #         timestamp[i] = timestamp[i][1].split(":",1)
-            #         timestamp[i] = timestamp[i][1]
 
             #Selecionando apenas os dados escolhidos e pondo na lista signal
             signal = []
@@ -56,13 +50,12 @@ class MyWidget(BoxLayout):
             
             #Plotando gráfico
             plt.plot(signal)
-            plt.xlabel('Número de dado')      
+            plt.xlabel('Número de dados')      
             plt.ylabel(self.ids.seletor.text)
             plt.grid(True, color='lightgray')
             self.ids.grafico.add_widget(FigureCanvasKivyAgg(plt.gcf()))
+            self.graf = True
 
-            # a = self.ids.grafico.children[-1]
-            # self.ids.grafico.removeWidget(a)
         except Exception as e:
             print("Erro: ", e.args)
     
@@ -86,10 +79,6 @@ class InterfaceApp(App):
         """
         return MyWidget()
  
-# if __name__ == '__main__':
-#     Config.set('graphics','resizable',True)
-#     InterfaceApp().run()
-
 if __name__ == '__main__':
     Window.size = (1200,600)
     Window.fullscreen = False
